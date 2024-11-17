@@ -1,0 +1,24 @@
+{
+  "name": "tt1069-sub",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "ts-node ./src"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^22.9.0",
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "iconv-lite": "^0.6.3",
+    "lodash": "^4.17.21",
+    "pg": "^8.13.1",
+    "reflect-metadata": "^0.2.2",
+    "ts-node": "^10.9.2",
+    "typeorm": "^0.3.20",
+    "typescript": "^5.6.3"
+  }
+}
