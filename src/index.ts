@@ -1,5 +1,6 @@
 import AppDataSource from "./dataSource"
-import { getLatestThreads } from "./schedulers/getLatestThreads"
+import scheduler from "./schedulers"
+import bot from "./telegram"
 import getCurrentUserInfo from "./tt1069/getCurrentUserInfo"
 
 const main = async () => {
@@ -13,8 +14,11 @@ const main = async () => {
   const currentUser = await getCurrentUserInfo()
   console.log(`当前登录用户：${currentUser.name} - ${currentUser.id}`)
 
-  await getLatestThreads()
+  bot.launch()
+  console.log('Telegram Bot 启动成功')
 
+  scheduler()
+  console.log('调度器启动成功')
 }
 
 main() 

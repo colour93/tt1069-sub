@@ -5,11 +5,11 @@ import _ from 'lodash'
 export type Config = {
   db: {
     type: 'postgres'
-    host?: string
-    port?: number
-    username?: string
-    password?: string
-    database?: string
+    host: string
+    port: number
+    username: string
+    password: string
+    database: string
     synchronize?: boolean
     logging?: boolean
   }
@@ -21,6 +21,11 @@ export type Config = {
       protocol: string
     }
   }
+  telegramBot: {
+    token: string,
+    proxy?: string,
+    chatId: number
+  }
 }
 
 const configPath = path.resolve('data', 'config.json')
@@ -28,9 +33,18 @@ const configPath = path.resolve('data', 'config.json')
 const defaultConfig: Config = {
   db: {
     type: 'postgres',
+    host: '',
+    port: 5432,
+    username: '',
+    password: '',
+    database: ''
   },
   request: {
     cookie: ''
+  },
+  telegramBot: {
+    token: '',
+    chatId: 0
   }
 }
 
