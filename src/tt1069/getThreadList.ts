@@ -6,10 +6,12 @@ const getThreadList = async ({
   targetId,
   maxPage = 10,
   maxPublishedAt,
+  maxCount,
 }: {
   targetId?: number
   maxPage?: number
   maxPublishedAt?: Date
+  maxCount?: number
 }) => {
 
   const threadList: Thread[] = []
@@ -19,6 +21,11 @@ const getThreadList = async ({
     let threadListByPage = await getThreadListByPage(page)
     if (maxPublishedAt) threadListByPage = threadListByPage.filter((thread) => thread.publishedAt >= maxPublishedAt)
     if (targetId) threadListByPage = threadListByPage.filter((thread) => thread.id > targetId)
+    if (maxCount && threadList.length + threadListByPage.length >= maxCount) {
+      threadListByPage = threadListByPage.slice(0, maxCount - threadList.length)
+      threadList.push(...threadListByPage)
+      break
+    }
     threadList.push(...threadListByPage)
     if (threadListByPage.length === 0 || (maxPage && page >= maxPage)) break
     page++

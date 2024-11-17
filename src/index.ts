@@ -1,4 +1,5 @@
 import AppDataSource from "./dataSource"
+import { getLatestThreads } from "./schedulers/getLatestThreads"
 import getCurrentUserInfo from "./tt1069/getCurrentUserInfo"
 
 const main = async () => {
@@ -11,6 +12,8 @@ const main = async () => {
 
   const currentUser = await getCurrentUserInfo()
   console.log(`当前登录用户：${currentUser.name} - ${currentUser.id}`)
+
+  await getLatestThreads()
 
 }
 
