@@ -1,16 +1,16 @@
-import ConfigManager from "./config"
-
+import AppDataSource from "./dataSource"
+import getCurrentUserInfo from "./tt1069/getCurrentUserInfo"
 
 const main = async () => {
 
-  await ConfigManager.initConfig()
-
-  const AppDataSource = await import('./dataSource')
-  await AppDataSource.default.initialize().then(() => {
+  await AppDataSource.initialize().then(() => {
     console.log('数据库连接成功')
   }).catch((error) => {
     console.error('数据库连接失败', error)
   })
+
+  const currentUser = await getCurrentUserInfo()
+  console.log(`当前登录用户：${currentUser.name} - ${currentUser.id}`)
 
 }
 
