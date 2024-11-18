@@ -1,16 +1,16 @@
 import { Entity, Column, PrimaryColumn, ManyToOne } from "typeorm"
-import { Author } from "./Author"
+import { AuthorEntity } from "./Author"
 
-@Entity()
-export class Thread {
+@Entity({ name: 'thread' })
+export class ThreadEntity {
   @PrimaryColumn()
   id!: number
 
   @Column()
   title!: string
 
-  @ManyToOne(() => Author, author => author.threads)
-  author!: Author
+  @ManyToOne(() => AuthorEntity, author => author.threads)
+  author!: AuthorEntity
 
   @Column()
   publishedAt!: Date
@@ -26,4 +26,13 @@ export class Thread {
 
   @Column({ type: 'simple-array', default: [] })
   ed2kList?: string[]
+
+  @Column({ default: false })
+  isPushed!: boolean
+
+  @Column({ default: false })
+  isDeleted!: boolean
+
+  @Column({ default: false })
+  isDownloaded!: boolean
 }

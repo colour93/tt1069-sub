@@ -1,6 +1,6 @@
 import axios from "../axios"
 import * as cheerio from "cheerio"
-import { Thread } from "../entities/Thread"
+import { ThreadEntity } from "../entities/Thread"
 
 const getThreadList = async ({
   targetId,
@@ -14,7 +14,7 @@ const getThreadList = async ({
   maxCount?: number
 }) => {
 
-  const threadList: Thread[] = []
+  const threadList: ThreadEntity[] = []
 
   let page = 1
   while (true) {
@@ -38,7 +38,7 @@ const getThreadListByPage = async (page: number) => {
   const resp = await axios.get(`forum-85-${page}.html`).then(res => res.data)
   const $ = cheerio.load(resp)
 
-  const tableData: Thread[] = []
+  const tableData: ThreadEntity[] = []
 
   const table = $('table#threadlisttableid')
   const rows = table.find('[id^="normalthread"]')
@@ -55,7 +55,12 @@ const getThreadListByPage = async (page: number) => {
     const authorId = Number(authorUrl?.split('.')[0].split('-')[2])
     const publishedAt = new Date(createdItem.find('em>span').text())
     if (!title || !url || !authorName || !authorUrl || !publishedAt) return
-    tableData.push({ id, title, publishedAt, category, author: { id: authorId, name: authorName } })
+    tableData.push({
+      id, title, publishedAt, category, author: { id: authorId, name: authorName },
+      isPushed: false,
+      isDeleted: false,
+      isDownloaded: false
+    })
   })
   return tableData
 }

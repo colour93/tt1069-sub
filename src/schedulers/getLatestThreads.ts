@@ -1,16 +1,10 @@
-import AppDataSource from "../dataSource"
-import { Author } from "../entities/Author"
-import { Thread } from "../entities/Thread"
-import sendThread from "../telegram/sendThread"
+import { threadRepository, authorRepository } from "../repositories"
 import getThreadData from "../tt1069/getThreadData"
 import getThreadList from "../tt1069/getThreadList"
 
 export const getLatestThreads = async () => {
 
   console.log('开始获取最新帖子')
-
-  const threadRepository = AppDataSource.getRepository(Thread)
-  const authorRepository = AppDataSource.getRepository(Author)
 
   const latestExistThread = await threadRepository.find({
     order: {
@@ -42,11 +36,9 @@ export const getLatestThreads = async () => {
       ...thread,
       ...threadData,
     }
-    threads[index] = newThread
-    await sendThread(newThread)
-  }
 
-  await threadRepository.save(threads)
+    await threadRepository.save(newThread)
+  }
 
   console.log('获取最新帖子完成')
 }

@@ -1,11 +1,12 @@
 import { DataSource } from "typeorm";
-import { Author } from "./entities/Author";
-import { Thread } from "./entities/Thread";
+import { AuthorEntity } from "./entities/Author";
+import { ThreadEntity } from "./entities/Thread";
+import { MessageEntity } from "./entities/Message";
 import ConfigManager from "./config";
 
 const AppDataSource = new DataSource({
   ...ConfigManager.config.db,
-  entities: [Author, Thread],
+  entities: [AuthorEntity, ThreadEntity, MessageEntity],
   synchronize: true,
   logging: false,
 })

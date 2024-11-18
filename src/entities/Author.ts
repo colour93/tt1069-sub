@@ -1,14 +1,14 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm"
-import { Thread } from "./Thread"
+import { ThreadEntity } from "./Thread"
 
-@Entity()
-export class Author {
+@Entity({ name: 'author' })
+export class AuthorEntity {
   @PrimaryColumn()
   id!: number
 
   @Column()
   name!: string
 
-  @OneToMany(() => Thread, thread => thread.author)
-  threads?: Thread[]
+  @OneToMany(() => ThreadEntity, thread => thread.author)
+  threads?: ThreadEntity[]
 }
