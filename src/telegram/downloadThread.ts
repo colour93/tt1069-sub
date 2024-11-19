@@ -1,7 +1,8 @@
 import bot from "."
 import ConfigManager from "../config"
 import { messageRepository, threadRepository } from "../repositories"
-import { ed2kRegex, ed2kRegexMd } from "../utils"
+import SynologyService from "../synology"
+import { ed2kRegexMd } from "../utils"
 import { Context } from "telegraf"
 
 const downloadThread = async (threadId: number, ctx?: Context) => {
@@ -18,10 +19,15 @@ const downloadThread = async (threadId: number, ctx?: Context) => {
     return
   }
 
-  const ed2k = thread.ed2kList?.[0]
-  if (!ed2k) {
+  if (!thread.ed2kList?.length) {
     bot.telegram.sendMessage(chatId, `帖子 ${threadId} 没有 ED2K 链接`)
     return
+  }
+
+  const downloadResult = await SynologyService.createDownloadStation2EmuleTask(thread.ed2kList)
+
+  if (!downloadResult.success) {
+    return downloadResult
   }
 
   const messages = await messageRepository.findBy({ threadId, type: 'text' })
@@ -39,7 +45,7 @@ const downloadThread = async (threadId: number, ctx?: Context) => {
     }
   }
 
-  // bot.telegram.sendMessage(ConfigManager.config.telegramBot.chatId, ed2k)
+  return downloadResult
 }
 
 export default downloadThread

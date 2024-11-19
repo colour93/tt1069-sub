@@ -26,10 +26,13 @@ export type Config = {
     proxy?: string,
     chatId: number
   }
-  synology: {
+  synology?: {
     baseUrl: string,
     account: string,
-    passwd: string
+    passwd: string,
+    download: {
+      destination: string
+    }
   }
 }
 
@@ -50,11 +53,6 @@ const defaultConfig: Config = {
   telegramBot: {
     token: '',
     chatId: 0
-  },
-  synology: {
-    baseUrl: '',
-    account: '',
-    passwd: ''
   }
 }
 

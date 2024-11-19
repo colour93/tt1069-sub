@@ -9,10 +9,15 @@ class SynologyService {
 
   private static _sid: string | null = null;
   private static _axiosInstance = axios.create({
-    baseURL: ConfigManager.config.synology.baseUrl,
+    baseURL: ConfigManager.config.synology?.baseUrl,
   });
 
   public static async init() {
+    process.on('SIGINT', async () => {
+      console.log('登出群晖')
+      await this.logout()
+      process.exit(0)
+    })
     return await this.login()
   }
 
@@ -37,8 +42,8 @@ class SynologyService {
         api: SynologyAPI.SYNO_AUTH,
         version: 6,
         method: SynologyAuthMethod.LOGIN,
-        account: ConfigManager.config.synology.account,
-        passwd: ConfigManager.config.synology.passwd,
+        account: ConfigManager.config.synology?.account,
+        passwd: ConfigManager.config.synology?.passwd,
         format: 'sid'
       }
     }).then((res) => res.data) as ApiAuthLoginResponse
@@ -83,6 +88,26 @@ class SynologyService {
         sort_by: 'created_time',
         order: 'DESC',
         ...params
+      }
+    }).then((res) => res.data)
+  }
+
+  public static async createDownloadStation2EmuleTask(urls: string[]): Promise<ApiDownloadStation2EmuleTask> {
+    return await this._axiosInstance({
+      url: '/webapi/entry.cgi',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data: {
+        _sid: this._sid,
+        api: SynologyAPI.SYNO_DOWNLOAD_STATION2_TASK,
+        version: 2,
+        method: SynologyDownloadStation2TaskMethod.CREATE,
+        type: '"url"',
+        destination: ConfigManager.config.synology?.download.destination,
+        url: JSON.stringify(urls),
+        create_list: false
       }
     }).then((res) => res.data)
   }

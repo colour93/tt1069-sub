@@ -18,6 +18,7 @@ export type DownloadStation2EmuleTask = {
 
 export enum DownloadStation2EmuleTaskStatus {
   WAITING = 1,
+  DOWNLOADING = 2,
   FINISHED = 5,
 }
 
