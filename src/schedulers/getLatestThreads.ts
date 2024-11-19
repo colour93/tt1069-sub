@@ -33,8 +33,8 @@ export const getLatestThreads = async () => {
       author = await authorRepository.save(thread.author)
     }
     const newThread = {
-      ...thread,
       ...threadData,
+      ...thread,
     }
 
     await threadRepository.save(newThread)

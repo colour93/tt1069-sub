@@ -1,4 +1,3 @@
-import { MessageEntity } from "telegraf/typings/core/types/typegram";
 import { ThreadEntity } from "../entities/Thread";
 import bot from ".";
 import ConfigManager from "../config";
@@ -15,38 +14,74 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
 
   msg += `ID: ${thread.id}  [论坛原始链接](https://www.tt1069.com/bbs/thread-${thread.id}-1-1.html)\n`
 
-  const ed2kStyleList: MessageEntity[] = []
   if (thread.ed2kList) {
     for (const ed2k of thread.ed2kList) {
-      ed2kStyleList.push({ type: 'code', offset: msg.length, length: ed2k.length })
       msg += `\n\`${ed2k}\``
     }
   }
 
   if (thread.imgList && thread.imgList.length > 0) {
-    const mediaMessage = await bot.telegram.sendMediaGroup(ConfigManager.config.telegramBot.chatId, thread.imgList.map((img) => ({ type: 'photo', media: img, caption: thread.title })))
-    if (saveToDb) await messageRepository.save(
-      mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media' }))
-    )
+    try {
+      const mediaMessage = await bot.telegram.sendMediaGroup(ConfigManager.config.telegramBot.chatId, thread.imgList.map((img) => ({ type: 'photo', media: img, caption: thread.title })))
+      if (saveToDb) await messageRepository.save(
+        mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media' }))
+      )
+    } catch (error) {
+      try {
+        const mediaMessage = await bot.telegram.sendMediaGroup(ConfigManager.config.telegramBot.chatId, thread.imgList.map((img) => ({ type: 'photo', media: 'https://proxy.imparty.cn/' + img, caption: thread.title })))
+        if (saveToDb) await messageRepository.save(
+          mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media' }))
+        )
+      } catch (error) {
+        console.error(`发送帖子 ${thread.id} 的图片失败`, error)
+      }
+    }
   }
 
+  let message;
 
-  const message = await bot.telegram.sendMessage(ConfigManager.config.telegramBot.chatId, msg, {
-    parse_mode: 'Markdown',
-    link_preview_options: {
-      is_disabled: true
-    },
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '下载', callback_data: `download:${thread.id}` },
-          { text: '删除', callback_data: `delete:${thread.id}` },
+  try {
+    message = await bot.telegram.sendMessage(ConfigManager.config.telegramBot.chatId, msg, {
+      parse_mode: 'Markdown',
+      link_preview_options: {
+        is_disabled: true
+      },
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '下载', callback_data: `download:${thread.id}` },
+            { text: '删除', callback_data: `delete:${thread.id}` },
+          ]
         ]
-      ]
-    }
-  })
+      }
+    })
 
-  if (saveToDb) await messageRepository.save(
+    if (saveToDb) await messageRepository.save(
+      { id: message.message_id, threadId: thread.id, type: 'text', textMessage: msg }
+    )
+
+  } catch (error) {
+
+    try {
+      message = await bot.telegram.sendMessage(ConfigManager.config.telegramBot.chatId, msg, {
+        link_preview_options: {
+          is_disabled: true
+        },
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '下载', callback_data: `download:${thread.id}` },
+              { text: '删除', callback_data: `delete:${thread.id}` },
+            ]
+          ]
+        }
+      })
+    } catch (error) {
+      console.error(`发送帖子 ${thread.id} 的文本失败`, error)
+    }
+  }
+
+  if (saveToDb && message) await messageRepository.save(
     { id: message.message_id, threadId: thread.id, type: 'text', textMessage: msg }
   )
 

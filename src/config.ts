@@ -26,6 +26,11 @@ export type Config = {
     proxy?: string,
     chatId: number
   }
+  synology: {
+    baseUrl: string,
+    account: string,
+    passwd: string
+  }
 }
 
 const configPath = path.resolve('data', 'config.json')
@@ -45,6 +50,11 @@ const defaultConfig: Config = {
   telegramBot: {
     token: '',
     chatId: 0
+  },
+  synology: {
+    baseUrl: '',
+    account: '',
+    passwd: ''
   }
 }
 
