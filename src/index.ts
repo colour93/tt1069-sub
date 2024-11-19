@@ -15,8 +15,6 @@ const main = async () => {
   const loginResult = await SynologyService.init()
   console.log(loginResult.success ? '群晖登录成功' : '群晖登录失败')
 
-  console.log(await SynologyService.listDownloadStation2EmuleTask())
-
   const currentUser = await getCurrentUserInfo()
   console.log(`当前登录用户：${currentUser.name} - ${currentUser.id}`)
 

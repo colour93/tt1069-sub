@@ -26,7 +26,7 @@ bot.on(message('text'), async (ctx) => {
   if (threadMatch) {
     const thread = await getThread(Number(threadMatch[1]))
     if (thread) {
-      await sendThread(thread)
+      await sendThread(thread, true, ctx)
     } else {
       await ctx.reply(`帖子不存在`)
     }
@@ -37,20 +37,32 @@ bot.action(/^download:(\d+)$/, async (ctx) => {
   await ctx.answerCbQuery("开始下载")
   const threadId = Number(ctx.match[1])
   if (isNaN(threadId)) {
-    await ctx.answerCbQuery("帖子 ID 不正确")
+    try {
+      await ctx.answerCbQuery("帖子 ID 不正确")
+    } catch (error) {
+      console.error(error)
+    }
     return
   }
-  await downloadThread(threadId)
+  await downloadThread(threadId, ctx)
 })
 
 bot.action(/^delete:(\d+)$/, async (ctx) => {
-  ctx.answerCbQuery("已删除")
+  try {
+    await ctx.answerCbQuery("已删除")
+  } catch (error) {
+    console.error(error)
+  }
   const threadId = Number(ctx.match[1])
   if (isNaN(threadId)) {
-    ctx.answerCbQuery("帖子 ID 不正确")
+    try {
+      await ctx.answerCbQuery("帖子 ID 不正确")
+    } catch (error) {
+      console.error(error)
+    }
     return
   }
-  await deleteThread(threadId)
+  await deleteThread(threadId, ctx)
 })
 
 process.once('SIGINT', () => bot.stop('SIGINT'))

@@ -3,15 +3,18 @@ import { Entity, Column, PrimaryColumn } from "typeorm"
 
 @Entity({ name: 'message' })
 export class MessageEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'numeric' })
   id!: number
 
-  @Column()
+  @Column({ type: 'numeric' })
   threadId!: number
+
+  @Column({ type: 'numeric', nullable: true })
+  chatId?: number
 
   @Column({ default: 'text' })
   type!: 'media' | 'text'
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   textMessage?: string
 }

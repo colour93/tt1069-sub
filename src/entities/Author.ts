@@ -3,7 +3,7 @@ import { ThreadEntity } from "./Thread"
 
 @Entity({ name: 'author' })
 export class AuthorEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'numeric' })
   id!: number
 
   @Column()

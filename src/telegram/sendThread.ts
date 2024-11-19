@@ -2,9 +2,12 @@ import { ThreadEntity } from "../entities/Thread";
 import bot from ".";
 import ConfigManager from "../config";
 import { messageRepository } from "../repositories";
+import { Context } from "telegraf";
 
-const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' | 'isDeleted' | 'isDownloaded'>, saveToDb = true) => {
+const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' | 'isDeleted' | 'isDownloaded'>, saveToDb = true, ctx?: Context) => {
   console.log(`正在推送帖子 ${thread.id} 的数据`)
+
+  const chatId = ctx?.chat?.id || ctx?.from?.id || ConfigManager.config.telegramBot.chatId
 
   let msg = `#${thread.category} **${thread.title}**\n`;
 
@@ -22,15 +25,15 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
 
   if (thread.imgList && thread.imgList.length > 0) {
     try {
-      const mediaMessage = await bot.telegram.sendMediaGroup(ConfigManager.config.telegramBot.chatId, thread.imgList.map((img) => ({ type: 'photo', media: img, caption: thread.title })))
+      const mediaMessage = await bot.telegram.sendMediaGroup(chatId, thread.imgList.map((img) => ({ type: 'photo', media: img, caption: thread.title })))
       if (saveToDb) await messageRepository.save(
-        mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media' }))
+        mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media', chatId }))
       )
     } catch (error) {
       try {
-        const mediaMessage = await bot.telegram.sendMediaGroup(ConfigManager.config.telegramBot.chatId, thread.imgList.map((img) => ({ type: 'photo', media: 'https://proxy.imparty.cn/' + img, caption: thread.title })))
+        const mediaMessage = await bot.telegram.sendMediaGroup(chatId, thread.imgList.map((img) => ({ type: 'photo', media: 'https://proxy.imparty.cn/' + img, caption: thread.title })))
         if (saveToDb) await messageRepository.save(
-          mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media' }))
+          mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media', chatId }))
         )
       } catch (error) {
         console.error(`发送帖子 ${thread.id} 的图片失败`, error)
@@ -41,7 +44,7 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
   let message;
 
   try {
-    message = await bot.telegram.sendMessage(ConfigManager.config.telegramBot.chatId, msg, {
+    message = await bot.telegram.sendMessage(chatId, msg, {
       parse_mode: 'Markdown',
       link_preview_options: {
         is_disabled: true
@@ -56,14 +59,10 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
       }
     })
 
-    if (saveToDb) await messageRepository.save(
-      { id: message.message_id, threadId: thread.id, type: 'text', textMessage: msg }
-    )
-
   } catch (error) {
 
     try {
-      message = await bot.telegram.sendMessage(ConfigManager.config.telegramBot.chatId, msg, {
+      message = await bot.telegram.sendMessage(chatId, msg, {
         link_preview_options: {
           is_disabled: true
         },
@@ -82,7 +81,7 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
   }
 
   if (saveToDb && message) await messageRepository.save(
-    { id: message.message_id, threadId: thread.id, type: 'text', textMessage: msg }
+    { id: message.message_id, threadId: thread.id, type: 'text', textMessage: msg, chatId }
   )
 
   console.log(`帖子 ${thread.id} 的数据推送成功`)

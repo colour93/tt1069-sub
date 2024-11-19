@@ -3,14 +3,14 @@ import { AuthorEntity } from "./Author"
 
 @Entity({ name: 'thread' })
 export class ThreadEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'numeric' })
   id!: number
 
   @Column()
   title!: string
 
   @ManyToOne(() => AuthorEntity, author => author.threads)
-  author!: AuthorEntity
+  author?: AuthorEntity
 
   @Column()
   publishedAt!: Date

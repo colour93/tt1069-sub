@@ -24,14 +24,17 @@ export const getLatestThreads = async () => {
   for (const [index, thread] of threads.entries()) {
     console.log(`正在获取第 ${index + 1} 条帖子 ${thread.id} 的数据`)
     const threadData = await getThreadData(thread.id)
-    let author = await authorRepository.findOne({
-      where: {
-        id: thread.author.id
+    if (thread.author) {
+      let author = await authorRepository.findOne({
+        where: {
+          id: thread.author.id
+        }
+      })
+      if (!author) {
+        author = await authorRepository.save(thread.author)
       }
-    })
-    if (!author) {
-      author = await authorRepository.save(thread.author)
     }
+
     const newThread = {
       ...threadData,
       ...thread,
