@@ -9,6 +9,7 @@ import getThread from "./getThread";
 import sendThread from "./sendThread";
 import getThreadList from "../tt1069/getThreadList";
 import { updateThreadList } from "../tt1069/updateThreadList";
+import markDownloadedThread from "./markDownloadedThread";
 
 const bot = new Telegraf(ConfigManager.config.telegramBot.token, ConfigManager.config.telegramBot.proxy ? {
   telegram: {
@@ -51,15 +52,15 @@ bot.action(/^download:(\d+)$/, async (ctx) => {
   try {
     const threadId = Number(ctx.match[1])
     if (isNaN(threadId)) {
-      await ctx.answerCbQuery("帖子 ID 不正确")
+      await ctx.answerCbQuery("帖子 ID 不正确").catch(() => { })
 
       return
     }
     const result = await downloadThread(threadId, ctx)
     if (result && result.success) {
-      await ctx.answerCbQuery("开始下载")
+      await ctx.answerCbQuery("开始下载").catch(() => { })
     } else {
-      await ctx.answerCbQuery(result ? `下载失败，错误码：${result.error.code}` : "下载失败")
+      await ctx.answerCbQuery(result ? `下载失败，错误码：${result.error.code}` : "下载失败").catch(() => { })
     }
   } catch (error) {
     console.error(error)
@@ -77,6 +78,21 @@ bot.action(/^delete:(\d+)$/, async (ctx) => {
       return
     }
     await deleteThread(threadId, ctx)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+bot.action(/^download-mark:(\d+)$/, async (ctx) => {
+  try {
+    const threadId = Number(ctx.match[1])
+    if (isNaN(threadId)) {
+      await ctx.answerCbQuery("帖子 ID 不正确").catch(() => { })
+
+      return
+    }
+    await markDownloadedThread(threadId, ctx)
+    await ctx.answerCbQuery("已标记").catch(() => { })
   } catch (error) {
     console.error(error)
   }

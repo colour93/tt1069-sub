@@ -54,6 +54,7 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
           [
             { text: '下载', callback_data: `download:${thread.id}` },
             { text: '删除', callback_data: `delete:${thread.id}` },
+            { text: '已下载', callback_data: `download-mark:${thread.id}` },
           ]
         ]
       }
