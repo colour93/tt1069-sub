@@ -21,10 +21,10 @@ export class ThreadEntity {
   @Column({ nullable: true })
   content?: string
 
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'json', default: [] })
   imgList?: string[]
 
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'json', default: [] })
   ed2kList?: string[]
 
   @Column({ default: false })

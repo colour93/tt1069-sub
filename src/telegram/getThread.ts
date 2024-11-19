@@ -11,6 +11,8 @@ const getThread = async (threadId: number) => {
     console.error(`获取帖子 ${threadId} 失败`, error)
   }
 
+  console.log(thread)
+
   return thread
 }
 

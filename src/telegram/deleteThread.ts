@@ -11,11 +11,13 @@ const deleteThread = async (threadId: number, ctx?: Context) => {
 
   try {
     const chatMessageMapper = messages.reduce((acc, message) => {
-      acc[message.chatId || ConfigManager.config.telegramBot.chatId] = message.id
+      const index = (message.chatId || ConfigManager.config.telegramBot.chatId).toString();
+      if (!acc[index]) acc[index] = []
+      acc[index].push(message.id)
       return acc
-    }, {} as Record<number, number>)
-    for (const chatId in chatMessageMapper) {
-      await bot.telegram.deleteMessages(chatId, [chatMessageMapper[chatId]])
+    }, {} as Record<string, number[]>)
+    for (const chatId of Object.keys(chatMessageMapper)) {
+      await bot.telegram.deleteMessages(chatId, chatMessageMapper[chatId])
     }
   } catch (error) {
     console.error(error)
