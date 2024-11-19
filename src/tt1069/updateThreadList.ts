@@ -35,15 +35,14 @@ export const updateThreadList = async (pages?: number, ctx?: Context) => {
   }).then(res => res.map(t => t.id))
 
   const newThreads = threads.filter(t => !existingThreadIds.includes(t.id))
-  threads.splice(0, threads.length, ...newThreads)
 
   if (message && ctx) {
-    await ctx.telegram.editMessageText(message.chat.id, message.message_id, undefined, `获取到 ${threads.length} 条帖子`)
+    await ctx.telegram.editMessageText(message.chat.id, message.message_id, undefined, `获取到 ${newThreads.length} 条帖子`)
   }
 
-  console.log(`获取到 ${threads.length} 条帖子`)
+  console.log(`获取到 ${newThreads.length} 条帖子`)
 
-  for (const [index, thread] of threads.entries()) {
+  for (const [index, thread] of newThreads.entries()) {
     console.log(`正在获取第 ${index + 1} 条帖子 ${thread.id} 的数据`)
     const threadData = await getThreadData(thread.id)
     if (thread.author) {
