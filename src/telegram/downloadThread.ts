@@ -5,11 +5,11 @@ import SynologyService from "../synology"
 import { ed2kRegexMd } from "../utils"
 import { Context } from "telegraf"
 
-const downloadThread = async (threadId: number, ctx?: Context) => {
+const downloadThread = async (threadId: number, ctx: Context, specificEd2k?: number) => {
 
   console.log(`开始下载帖子 ${threadId}`)
 
-  const chatId = ctx?.chat?.id || ctx?.from?.id || ConfigManager.config.telegramBot.chatId
+  const chatId = ctx.chat?.id || ctx.from?.id || ConfigManager.config.telegramBot.chatId
 
   const thread = await threadRepository.findOneBy({ id: threadId })
 
@@ -27,78 +27,50 @@ const downloadThread = async (threadId: number, ctx?: Context) => {
   let ed2kToDownload = thread.ed2kList;
 
   if (ctx && ed2kToDownload.length > 1) {
-    const keyboard = {
-      inline_keyboard: [
-        [
-          ...thread.ed2kList.map((_, index) => {
-            return {
-              text: (index + 1).toString(),
-              callback_data: `download-confirm_${threadId}_${index}`
-            }
-          }),
-        ],
-        [{
-          text: '下载全部',
-          callback_data: `download-confirm_${threadId}_all`
-        }]
-      ]
-    };
+    if (specificEd2k !== undefined) {
 
-    const msg = await bot.telegram.sendMessage(
-      chatId,
-      `请在 30 秒内选择要下载的 ED2K 链接:\n${thread.ed2kList.map((ed2k, index) => `${index + 1}. ${ed2k}`).join('\n')}`,
-      { reply_markup: keyboard }
-    );
-
-    try {
-      const response = await Promise.race([
-        new Promise<string>((resolve) => {
-          bot.action(new RegExp(`download-confirm_${threadId}_.*`), (ctx) => {
-            ctx.answerCbQuery().catch(() => { });
-            resolve(ctx.match[0].split('_')[2]);
-          });
-        }),
-        new Promise<string>((resolve) =>
-          setTimeout(() => resolve('timeout'), 30000)
-        )
-      ]);
-
-      if (response === 'timeout') {
-        await bot.telegram.editMessageText(
-          chatId,
-          msg.message_id,
-          undefined,
-          '已超时，将下载全部链接'
-        );
-      } else if (response === 'all') {
-        ed2kToDownload = thread.ed2kList;
-        await bot.telegram.editMessageText(
-          chatId,
-          msg.message_id,
-          undefined,
-          '将下载全部链接'
-        );
+      if (specificEd2k === -1) {
+        ed2kToDownload = thread.ed2kList
       } else {
-        const index = parseInt(response);
-        if (index >= 0 && index < thread.ed2kList.length) {
-          ed2kToDownload = [thread.ed2kList[index]];
-          await bot.telegram.editMessageText(
-            chatId,
-            msg.message_id,
-            undefined,
-            `将下载第 ${index + 1} 个链接`
-          );
+        ed2kToDownload = [ed2kToDownload[specificEd2k]]
+      }
+
+      ctx.editMessageText(`已选择 ${specificEd2k === -1 ? '全部' : '第 ' + (specificEd2k + 1) + ' 个'} ED2K 链接`, {
+        reply_markup: undefined
+      }).then(() => {
+        setTimeout(() => {
+          ctx.deleteMessage()
+        }, 15000)
+      }).catch(() => { })
+    } else {
+      const keyboard = {
+        inline_keyboard: [
+          [
+            ...thread.ed2kList.map((_, index) => {
+              return {
+                text: (index + 1).toString(),
+                callback_data: `download-confirm:${threadId}_${index}`
+              }
+            }),
+          ],
+          [{
+            text: '下载全部',
+            callback_data: `download-confirm:${threadId}_-1`
+          }]
+        ]
+      };
+
+      bot.telegram.sendMessage(
+        chatId,
+        `请选择要下载的 ED2K 链接:\n${thread.ed2kList.map((ed2k, index) => `${index + 1}. ${ed2k}`).join('\n')}`,
+        { reply_markup: keyboard }
+      ).catch(() => { });
+      return {
+        success: false,
+        error: {
+          code: -1
         }
       }
-      setTimeout(() => {
-        bot.telegram.deleteMessage(chatId, msg.message_id);
-      }, 15000);
-    } catch (error) {
-      console.error('获取用户选择失败:', error);
-      const msg = await bot.telegram.sendMessage(chatId, '获取选择失败,将下载全部链接');
-      setTimeout(() => {
-        bot.telegram.deleteMessage(chatId, msg.message_id);
-      }, 15000);
     }
   }
 

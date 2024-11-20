@@ -59,6 +59,8 @@ bot.action(/^download:(\d+)$/, async (ctx) => {
     const result = await downloadThread(threadId, ctx)
     if (result && result.success) {
       await ctx.answerCbQuery("开始下载").catch(() => { })
+    } else if (result && result.error.code === -1) {
+      await ctx.answerCbQuery("已发送 ED2K 选择请求").catch(() => { })
     } else {
       await ctx.answerCbQuery(result ? `下载失败，错误码：${result.error.code}` : "下载失败").catch(() => { })
     }
@@ -78,6 +80,29 @@ bot.action(/^delete:(\d+)$/, async (ctx) => {
       return
     }
     await deleteThread(threadId, ctx)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+bot.action(/^download-confirm:(\d+)_(.*)$/, async (ctx) => {
+  try {
+    const threadId = Number(ctx.match[1])
+    if (isNaN(threadId)) {
+      await ctx.answerCbQuery("帖子 ID 不正确").catch(() => { })
+      return
+    }
+    const index = Number(ctx.match[2])
+    if (isNaN(index)) {
+      await ctx.answerCbQuery("链接序号不正确").catch(() => { })
+      return
+    }
+    const result = await downloadThread(threadId, ctx, index)
+    if (result && result.success) {
+      await ctx.answerCbQuery("开始下载").catch(() => { })
+    } else {
+      await ctx.answerCbQuery(result ? `下载失败，错误码：${result.error.code}` : "下载失败").catch(() => { })
+    }
   } catch (error) {
     console.error(error)
   }
