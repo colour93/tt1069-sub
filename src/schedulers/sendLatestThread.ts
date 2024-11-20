@@ -4,11 +4,12 @@ import sendThread from "../telegram/sendThread"
 const sendLatestThread = async () => {
   const latestThread = await threadRepository.find({
     where: {
+      isDownloaded: false,
       isPushed: false,
       isDeleted: false
     },
     order: {
-      publishedAt: 'DESC'
+      publishedAt: 'ASC'
     },
     take: 1
   }).then(res => res.length > 0 ? res[0] : null)
