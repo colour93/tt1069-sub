@@ -32,7 +32,9 @@ export const updateThreadList = async (pages?: number, ctx?: Context) => {
     where: {
       id: In(threads.map(t => t.id))
     }
-  }).then(res => res.map(t => t.id))
+  }).then(res => res.map(t => Number(t.id)))
+
+  console.log(`已存在 ${existingThreadIds.length} 条帖子`)
 
   const newThreads = threads.filter(t => !existingThreadIds.includes(t.id))
 
