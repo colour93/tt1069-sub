@@ -1,4 +1,6 @@
-import express from "express";
+import express, { Request } from "express";
+import path from "path";
+import { NovelThreadEntity } from "./entities/NovelThread";
 import { novelPostRepository, novelThreadRepository } from "./repositories";
 import fetchNovelThreadPosts from "./tt1069/novel/fetchNovelThreadPosts";
 import syncNovelThread from "./tt1069/novel/syncNovelThread";
@@ -6,6 +8,41 @@ import syncNovelThread from "./tt1069/novel/syncNovelThread";
 const createServer = () => {
   const app = express();
   app.use(express.json());
+
+  const staticRoot = path.resolve(__dirname, "../web/dist");
+  app.use(express.static(staticRoot));
+
+  const pickQueryString = (value: unknown): string | undefined => {
+    if (Array.isArray(value)) return value[0];
+    if (typeof value === "string") return value;
+    return undefined;
+  };
+
+  const parsePagination = (
+    req: Request,
+    {
+      defaultPage = 1,
+      defaultPageSize = 20,
+      maxPageSize = 100,
+    }: { defaultPage?: number; defaultPageSize?: number; maxPageSize?: number } = {}
+  ) => {
+    const page = Math.max(
+      1,
+      Number(pickQueryString(req.query.page)) || defaultPage
+    );
+    const requestedSize = Number(pickQueryString(req.query.pageSize));
+    const pageSize = Math.max(
+      1,
+      Math.min(
+        Number.isFinite(requestedSize) ? Number(requestedSize) : defaultPageSize,
+        maxPageSize
+      )
+    );
+
+    return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };
+  };
+
+  type NovelThreadWithPostCount = NovelThreadEntity & { postCount: number };
 
   const parseThreadIdFromUrl = (url: string): number | null => {
     const match = url.match(/thread-(\d+)-/);
@@ -22,20 +59,50 @@ const createServer = () => {
 
   // 小说列表
   app.get("/api/novels", async (_req, res) => {
-    const threads = await novelThreadRepository.find({
-      order: { latestPostAt: "DESC" },
-    });
+    const { page, pageSize, skip, take } = parsePagination(_req);
+    const keyword = pickQueryString(_req.query.keyword)?.trim().toLowerCase();
+    const subscribedRaw = pickQueryString(_req.query.subscribed);
+    const sortField =
+      pickQueryString(_req.query.sort) === "publishedAt"
+        ? "thread.publishedAt"
+        : "thread.latestPostAt";
 
-    const withCounts = await Promise.all(
-      threads.map(async (t) => {
-        const postCount = await novelPostRepository.count({
-          where: { threadId: t.id },
+    const qb = novelThreadRepository
+      .createQueryBuilder("thread")
+      .leftJoinAndSelect("thread.author", "author")
+      .loadRelationCountAndMap("thread.postCount", "thread.posts")
+      .orderBy(`${sortField}`, "DESC", "NULLS LAST")
+      .addOrderBy("thread.id", "DESC")
+      .skip(skip)
+      .take(take);
+
+    if (keyword) {
+      qb.andWhere(
+        "(LOWER(thread.title) LIKE :kw OR LOWER(author.name) LIKE :kw)",
+        { kw: `%${keyword}%` }
+      );
+    }
+
+    if (typeof subscribedRaw === "string") {
+      const normalized = subscribedRaw.toLowerCase();
+      if (["true", "false"].includes(normalized)) {
+        qb.andWhere("thread.subscribed = :subscribed", {
+          subscribed: normalized === "true",
         });
-        return { ...t, postCount };
-      })
-    );
+      }
+    }
 
-    res.json(withCounts);
+    const [threads, total] = await qb.getManyAndCount();
+
+    res.json({
+      data: threads as NovelThreadWithPostCount[],
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
   });
 
   // 单个小说详情（包含 posts）
@@ -48,6 +115,7 @@ const createServer = () => {
 
     const thread = await novelThreadRepository.findOne({
       where: { id },
+      relations: ["author"],
     });
 
     if (!thread) {
@@ -55,12 +123,49 @@ const createServer = () => {
       return;
     }
 
+    const postTotal = await novelPostRepository.count({ where: { threadId: id } });
     const posts = await novelPostRepository.find({
       where: { threadId: id },
       order: { publishedAt: "ASC" },
     });
 
-    res.json({ ...thread, posts });
+    res.json({ ...thread, posts, postCount: postTotal });
+  });
+
+  // 单个小说 posts 分页
+  app.get("/api/novels/:id/posts", async (req, res) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "invalid id" });
+      return;
+    }
+
+    const { page, pageSize, skip, take } = parsePagination(req, {
+      defaultPageSize: 50,
+      maxPageSize: 200,
+    });
+
+    const orderDirection =
+      pickQueryString(req.query.order)?.toLowerCase() === "desc"
+        ? "DESC"
+        : "ASC";
+
+    const [posts, total] = await novelPostRepository.findAndCount({
+      where: { threadId: id },
+      order: { publishedAt: orderDirection, id: orderDirection },
+      skip,
+      take,
+    });
+
+    res.json({
+      data: posts,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
   });
 
   // 订阅/取消订阅
@@ -140,6 +245,15 @@ const createServer = () => {
     );
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.send(content);
+  });
+
+  // 前端静态资源与 SPA 回退
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/api")) {
+      res.status(404).json({ error: "not found" });
+      return;
+    }
+    res.sendFile(path.join(staticRoot, "index.html"));
   });
 
   return app;
