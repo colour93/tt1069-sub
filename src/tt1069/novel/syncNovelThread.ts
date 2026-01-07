@@ -87,7 +87,8 @@ export const syncNovelThread = async (
       if (!acc) return post.publishedAt;
       return post.publishedAt > acc ? post.publishedAt : acc;
     }, thread.latestPostAt || null) ||
-    thread.latestPostAt;
+    thread.latestPostAt ||
+    null;
 
   thread.latestPostAt = latestPostAt || thread.latestPostAt || null;
   thread.lastSyncedAt = new Date();
