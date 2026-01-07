@@ -1,7 +1,7 @@
 import { threadRepository } from "../repositories"
-import sendThread from "../telegram/sendThread"
+import sendEd2kVideoThread from "../telegram/sendEd2kVideoThread"
 
-const sendLatestThread = async () => {
+const sendLatestEd2kVideoThread = async () => {
   const latestThread = await threadRepository.find({
     where: {
       isDownloaded: false,
@@ -15,10 +15,11 @@ const sendLatestThread = async () => {
   }).then(res => res.length > 0 ? res[0] : null)
 
   if (latestThread) {
-    await sendThread(latestThread)
+    await sendEd2kVideoThread(latestThread)
 
     await threadRepository.update(latestThread.id, { isPushed: true })
   }
 }
 
-export default sendLatestThread
+export default sendLatestEd2kVideoThread
+

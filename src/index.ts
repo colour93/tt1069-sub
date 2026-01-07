@@ -1,8 +1,10 @@
+import 'reflect-metadata'
 import AppDataSource from "./dataSource"
 import scheduler from "./schedulers"
 import SynologyService from "./synology"
 import bot from "./telegram"
 import getCurrentUserInfo from "./tt1069/getCurrentUserInfo"
+import startHttpServer from "./api"
 
 const main = async () => {
 
@@ -23,6 +25,9 @@ const main = async () => {
 
   scheduler()
   console.log('调度器启动成功')
+
+  startHttpServer()
+  console.log('HTTP API 启动成功')
 }
 
 main() 

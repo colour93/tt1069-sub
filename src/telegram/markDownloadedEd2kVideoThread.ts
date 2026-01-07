@@ -4,7 +4,7 @@ import bot from ".";
 import ConfigManager from "../config";
 import { messageRepository } from "../repositories";
 
-const markDownloadedThread = async (threadId: number, ctx: Context) => {
+const markDownloadedEd2kVideoThread = async (threadId: number, ctx: Context) => {
 
   const chatId = ctx?.chat?.id || ctx?.from?.id || ConfigManager.config.telegramBot.chatId
 
@@ -24,4 +24,5 @@ const markDownloadedThread = async (threadId: number, ctx: Context) => {
   }
 }
 
-export default markDownloadedThread
+export default markDownloadedEd2kVideoThread
+

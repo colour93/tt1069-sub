@@ -5,9 +5,9 @@ import SynologyService from "../synology"
 import { ed2kRegexMd } from "../utils"
 import { Context } from "telegraf"
 
-const downloadThread = async (threadId: number, ctx: Context, specificEd2k?: number) => {
+const downloadEd2kVideoThread = async (threadId: number, ctx: Context, specificEd2k?: number) => {
 
-  console.log(`开始下载帖子 ${threadId}`)
+  console.log(`开始下载 ED2K 视频帖子 ${threadId}`)
 
   const chatId = ctx.chat?.id || ctx.from?.id || ConfigManager.config.telegramBot.chatId
 
@@ -49,13 +49,13 @@ const downloadThread = async (threadId: number, ctx: Context, specificEd2k?: num
             ...thread.ed2kList.map((_, index) => {
               return {
                 text: (index + 1).toString(),
-                callback_data: `download-confirm:${threadId}_${index}`
+                callback_data: `download_video_thread_confirm:${threadId}_${index}`
               }
             }),
           ],
           [{
             text: '下载全部',
-            callback_data: `download-confirm:${threadId}_-1`
+            callback_data: `download_video_thread_confirm:${threadId}_-1`
           }]
         ]
       };
@@ -100,4 +100,5 @@ const downloadThread = async (threadId: number, ctx: Context, specificEd2k?: num
   return downloadResult
 }
 
-export default downloadThread
+export default downloadEd2kVideoThread
+

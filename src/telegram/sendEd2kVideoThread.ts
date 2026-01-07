@@ -4,8 +4,8 @@ import ConfigManager from "../config";
 import { messageRepository } from "../repositories";
 import { Context } from "telegraf";
 
-const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' | 'isDeleted' | 'isDownloaded'>, saveToDb = true, ctx?: Context) => {
-  console.log(`正在推送帖子 ${thread.id} 的数据`)
+const sendEd2kVideoThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' | 'isDeleted' | 'isDownloaded'>, saveToDb = true, ctx?: Context) => {
+  console.log(`正在推送 ED2K 视频帖子 ${thread.id} 的数据`)
 
   const chatId = ctx?.chat?.id || ctx?.from?.id || ConfigManager.config.telegramBot.chatId
 
@@ -52,9 +52,9 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
       reply_markup: {
         inline_keyboard: [
           [
-            { text: '下载', callback_data: `download:${thread.id}` },
-            { text: '删除', callback_data: `delete:${thread.id}` },
-            { text: '已下载', callback_data: `download-mark:${thread.id}` },
+            { text: '下载', callback_data: `download_video_thread:${thread.id}` },
+            { text: '删除', callback_data: `delete_video_thread:${thread.id}` },
+            { text: '已下载', callback_data: `download_video_thread_mark:${thread.id}` },
           ]
         ]
       }
@@ -70,8 +70,8 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '下载', callback_data: `download:${thread.id}` },
-              { text: '删除', callback_data: `delete:${thread.id}` },
+              { text: '下载', callback_data: `download_video_thread:${thread.id}` },
+              { text: '删除', callback_data: `delete_video_thread:${thread.id}` },
             ]
           ]
         }
@@ -85,7 +85,8 @@ const sendThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'isPushed' |
     { id: message.message_id, threadId: thread.id, type: 'text', textMessage: msg, chatId }
   )
 
-  console.log(`帖子 ${thread.id} 的数据推送成功`)
+  console.log(`ED2K 视频帖子 ${thread.id} 的数据推送成功`)
 }
 
-export default sendThread
+export default sendEd2kVideoThread
+

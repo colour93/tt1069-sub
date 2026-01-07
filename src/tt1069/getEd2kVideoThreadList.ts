@@ -2,7 +2,11 @@ import axios from "../axios"
 import * as cheerio from "cheerio"
 import { ThreadEntity } from "../entities/Thread"
 
-const getThreadList = async ({
+/**
+ * 获取 TT1069 论坛 ED2K 视频区的帖子列表。
+ * 保留分页/时间/数量等裁剪能力，供调度器和命令复用。
+ */
+const getEd2kVideoThreadList = async ({
   targetId,
   maxPage = 10,
   maxPublishedAt,
@@ -56,13 +60,18 @@ const getThreadListByPage = async (page: number) => {
     const publishedAt = new Date(createdItem.find('em>span').text())
     if (!title || !url || !authorName || !authorUrl || !publishedAt) return
     tableData.push({
-      id, title, publishedAt, category, author: { id: authorId, name: authorName },
+      id,
+      title,
+      publishedAt,
+      category,
+      author: { id: authorId, name: authorName },
       isPushed: false,
       isDeleted: false,
-      isDownloaded: false
+      isDownloaded: false,
     })
   })
   return tableData
 }
 
-export default getThreadList
+export default getEd2kVideoThreadList
+

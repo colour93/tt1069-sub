@@ -1,38 +1,38 @@
-import { Entity, Column, PrimaryColumn, ManyToOne } from "typeorm"
-import { AuthorEntity } from "./Author"
+import { Entity, Column, PrimaryColumn, ManyToOne } from "typeorm";
+import { AuthorEntity } from "./Author";
 
-@Entity({ name: 'thread' })
+@Entity({ name: "thread" })
 export class ThreadEntity {
-  @PrimaryColumn({ type: 'numeric' })
-  id!: number
+  @PrimaryColumn({ type: "numeric" })
+  id!: number;
 
   @Column()
-  title!: string
+  title!: string;
 
-  @ManyToOne(() => AuthorEntity, author => author.threads)
-  author?: AuthorEntity
-
-  @Column()
-  publishedAt!: Date
+  @ManyToOne(() => AuthorEntity, (author) => author.threads)
+  author?: AuthorEntity;
 
   @Column()
-  category!: string
+  publishedAt!: Date;
+
+  @Column()
+  category!: string;
 
   @Column({ nullable: true })
-  content?: string
+  content?: string;
 
-  @Column({ type: 'json', default: [] })
-  imgList?: string[]
+  @Column({ type: "json", default: [] })
+  imgList?: string[];
 
-  @Column({ type: 'json', default: [] })
-  ed2kList?: string[]
-
-  @Column({ default: false })
-  isPushed!: boolean
+  @Column({ type: "json", default: [] })
+  ed2kList?: string[];
 
   @Column({ default: false })
-  isDeleted!: boolean
+  isPushed!: boolean;
 
   @Column({ default: false })
-  isDownloaded!: boolean
+  isDeleted!: boolean;
+
+  @Column({ default: false })
+  isDownloaded!: boolean;
 }

@@ -2,7 +2,10 @@ import axios from "../axios"
 import * as cheerio from "cheerio"
 import { ed2kRegex } from "../utils"
 
-const getThreadData = async (threadId: number) => {
+/**
+ * 获取单个 ED2K 视频帖子的完整信息。
+ */
+const getEd2kVideoThreadData = async (threadId: number) => {
   const resp = await axios.get(`thread-${threadId}-1-1.html`).then(res => res.data)
   const $ = cheerio.load(resp)
 
@@ -33,7 +36,17 @@ const getThreadData = async (threadId: number) => {
   })
   const ed2kList = content.match(ed2kRegex) || [];
 
-  return { id: threadId, title, category, author: { id: authorId, name: authorName }, publishedAt, content, imgList, ed2kList }
+  return {
+    id: threadId,
+    title,
+    category,
+    author: { id: authorId, name: authorName },
+    publishedAt,
+    content,
+    imgList,
+    ed2kList,
+  }
 }
 
-export default getThreadData
+export default getEd2kVideoThreadData
+
