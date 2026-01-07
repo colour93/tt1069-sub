@@ -24,19 +24,26 @@ const sendEd2kVideoThread = async (thread: ThreadEntity | Omit<ThreadEntity, 'is
   }
 
   if (thread.imgList && thread.imgList.length > 0) {
-    try {
-      const mediaMessage = await bot.telegram.sendMediaGroup(chatId, thread.imgList.map((img) => ({ type: 'photo', media: img, caption: thread.title })))
-      if (saveToDb) await messageRepository.save(
-        mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media', chatId }))
-      )
-    } catch (error) {
+    const chunks: string[][] = []
+    for (let i = 0; i < thread.imgList.length; i += 10) {
+      chunks.push(thread.imgList.slice(i, i + 10))
+    }
+
+    for (const chunk of chunks) {
       try {
-        const mediaMessage = await bot.telegram.sendMediaGroup(chatId, thread.imgList.map((img) => ({ type: 'photo', media: 'https://proxy.imparty.cn/' + img, caption: thread.title })))
+        const mediaMessage = await bot.telegram.sendMediaGroup(chatId, chunk.map((img) => ({ type: 'photo', media: img, caption: thread.title })))
         if (saveToDb) await messageRepository.save(
           mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media', chatId }))
         )
       } catch (error) {
-        console.error(`发送帖子 ${thread.id} 的图片失败`, error)
+        try {
+          const mediaMessage = await bot.telegram.sendMediaGroup(chatId, chunk.map((img) => ({ type: 'photo', media: 'https://proxy.imparty.cn/' + img, caption: thread.title })))
+          if (saveToDb) await messageRepository.save(
+            mediaMessage.map((message) => ({ id: message.message_id, threadId: thread.id, type: 'media', chatId }))
+          )
+        } catch (error) {
+          console.error(`发送帖子 ${thread.id} 的图片失败`, error)
+        }
       }
     }
   }
