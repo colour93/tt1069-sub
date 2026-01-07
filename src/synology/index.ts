@@ -4,6 +4,7 @@ import { ApiInfoResponse } from "../typings/Synology/info";
 import { SynologyAPI, SynologyAuthMethod, SynologyDownloadStation2TaskMethod, SynologyInfoMethod } from "./consts";
 import { ApiAuthLoginResponse, ApiAuthLogoutResponse } from "../typings/Synology/auth";
 import { ApiDownloadStation2EmuleTask } from "../typings/Synology/downloadStations2Task";
+import { attachRetryInterceptor } from "../axios";
 
 class SynologyService {
 
@@ -13,6 +14,7 @@ class SynologyService {
   });
 
   public static async init() {
+    attachRetryInterceptor(this._axiosInstance)
     process.on('SIGINT', async () => {
       console.log('登出群晖')
       await this.logout()
